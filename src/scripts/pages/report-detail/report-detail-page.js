@@ -182,7 +182,7 @@ async populateReportDetailAndInitialMap(message, report) {
 
   addNotifyMeEventListener() {
     document.getElementById('report-detail-notify-me').addEventListener('click', () => {
-      alert('Fitur notifikasi laporan akan segera hadir!');
+      this.#presenter.notifyMe();
     });
   }
 
