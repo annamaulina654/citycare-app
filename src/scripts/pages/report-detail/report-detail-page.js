@@ -13,6 +13,7 @@ import ReportDetailPresenter from './report-detail-presenter';
 import { parseActivePathname } from '../../routes/url-parser';
 import Map from '../../utils/map';
 import * as CityCareAPI from '../../data/api';
+import Database from '../../data/database';
 
 export default class ReportDetailPage {
   #presenter = null;
@@ -54,6 +55,7 @@ export default class ReportDetailPage {
     this.#presenter = new ReportDetailPresenter(parseActivePathname().id, {
       view: this,
       apiModel: CityCareAPI,
+      dbModel: Database,
     });
 
     this.#setupForm();
@@ -62,27 +64,27 @@ export default class ReportDetailPage {
     this.#presenter.getCommentsList();
   }
 
-async populateReportDetailAndInitialMap(message, report) {
-  document.getElementById('report-detail').innerHTML = generateReportDetailTemplate({
-    title: report.title,
-    description: report.description,
-    damageLevel: report.damageLevel,
-    evidenceImages: report.evidenceImages,
-    location: report.location,
-    reporterName: report.reporter.name,
-    createdAt: report.createdAt,
-  });
+  async populateReportDetailAndInitialMap(message, report) {
+    document.getElementById('report-detail').innerHTML = generateReportDetailTemplate({
+      title: report.title,
+      description: report.description,
+      damageLevel: report.damageLevel,
+      evidenceImages: report.evidenceImages,
+      location: report.location,
+      reporterName: report.reporter.name,
+      createdAt: report.createdAt,
+    });
 
     // Carousel images
     createCarousel(document.getElementById('images'));
 
     // Map
     await this.#presenter.showReportDetailMap();
-
     if (this.#map) {
       const reportCoordinate = [report.location.latitude, report.location.longitude];
       const markerOptions = { alt: report.title };
       const popupOptions = { content: report.title };
+
       this.#map.changeCamera(reportCoordinate);
       this.#map.addMarker(reportCoordinate, markerOptions, popupOptions);
     }
@@ -167,8 +169,17 @@ async populateReportDetailAndInitialMap(message, report) {
       generateSaveReportButtonTemplate();
 
     document.getElementById('report-detail-save').addEventListener('click', async () => {
-      alert('Fitur simpan laporan akan segera hadir!');
+      await this.#presenter.saveReport();
+      // await this.#presenter.showSaveButton();
     });
+  }
+
+  saveToBookmarkSuccessfully(message) {
+    console.log(message);
+  }
+
+  saveToBookmarkFailed(message) {
+    alert(message);
   }
 
   renderRemoveButton() {
@@ -176,8 +187,17 @@ async populateReportDetailAndInitialMap(message, report) {
       generateRemoveReportButtonTemplate();
 
     document.getElementById('report-detail-remove').addEventListener('click', async () => {
-      alert('Fitur simpan laporan akan segera hadir!');
+      await this.#presenter.removeReport();
+      await this.#presenter.showSaveButton();
     });
+  }
+
+  removeFromBookmarkSuccessfully(message) {
+    console.log(message);
+  }
+
+  removeFromBookmarkFailed(message) {
+    alert(message);
   }
 
   addNotifyMeEventListener() {
